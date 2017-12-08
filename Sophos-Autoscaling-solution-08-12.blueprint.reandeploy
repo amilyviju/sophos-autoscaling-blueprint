@@ -1,0 +1,363 @@
+{
+  "rean_deploy_version": "v0.12.0",
+  "environments": [
+    {
+      "name": "Sophos-Autoscaling-solution",
+      "connectionName": "amily",
+      "connectionType": "SSH",
+      "description": "Generalized Sophos Blueprint for HA Warm Configuration",
+      "exportedByEmail": "amily.viju@reancloud.com",
+      "exportedOn": 1512743720289,
+      "postDeployScript": "",
+      "providerName": "amily",
+      "providerType": "aws",
+      "region": "us-west-2",
+      "resources": [
+        {
+          "name": "Input Variables",
+          "resourceName": "Input Variables",
+          "attributes": {
+            "input_variables": "{\"Name\":\"Sophos_Autoscaling\",\"owner\":\"REAN\",\"environment\":\"\",\"product\":\"reanplatform\",\"Project\":\"\",\"ami\":\"\",\"InstanceSize\":\"\",\"InstanceSize1\":\"\",\"Email\":\"\",\"AdminPassword\":\"\",\"Organization\":\"\",\"City\":\"\",\"Country\":\"\",\"KeyName\":\"\",\"vpc_cidr\":\"\",\"vpc_id\":\"\",\"TrustedNetwork\":\"\",\"public\":\"\",\"SwarmSubnet1\":\"\",\"SwarmSubnet2\":\"\",\"QueenSubnet1\":\"\",\"QueenSubnet2\":\"\"}"
+          },
+          "positionX": 49,
+          "positionY": 7
+        },
+        {
+          "name": "LoadBalancerReceiverSecurityGroup",
+          "resourceName": "aws_security_group",
+          "attributes": {
+            "description": null,
+            "egress": "[{\"from_port\":0,\"to_port\":0,\"protocol\":\"-1\",\"cidr_blocks\":[\"0.0.0.0/0\"]}]",
+            "ingress": "[]",
+            "name": "${var.environment}-${var.product}-LoadBalancerReceiverSecurityGroup",
+            "tags": "{\"Owner\":\"${var.owner}\",\"CreatedBy\":\"REAN-Deploy\",\"Name\":\"${var.environment}-${var.product}-LoadBalancerReceiverSecurityGroup\",\"Environment\":\"${var.environment}\",\"Product\":\"${var.product}\"}",
+            "vpc_id": "${var.vpc_id}"
+          },
+          "positionX": 791,
+          "positionY": 183
+        },
+        {
+          "name": "LoadBalancerSecurityGroup",
+          "resourceName": "aws_security_group",
+          "attributes": {
+            "description": null,
+            "egress": "[{\"from_port\":0,\"to_port\":0,\"protocol\":\"-1\",\"cidr_blocks\":[\"0.0.0.0/0\"]}]",
+            "ingress": "[]",
+            "name": "${var.environment}-${var.product}-LoadBalancerSecurityGroup",
+            "tags": "{\"Owner\":\"${var.owner}\",\"CreatedBy\":\"REAN-Deploy\",\"Name\":\"${var.environment}-${var.product}-LoadBalancerSecurityGroup\",\"Environment\":\"${var.environment}\",\"Product\":\"${var.product}\"}",
+            "vpc_id": "${var.vpc_id}"
+          },
+          "positionX": 808,
+          "positionY": 240
+        },
+        {
+          "name": "Output",
+          "resourceName": "output",
+          "attributes": {
+            "output": "{\"Sophos_ha_warm_url\":{\"value\":\"https://${Sophos_Autoscaling_EIP.public_ip}:4444/\"}}"
+          },
+          "positionX": 863,
+          "positionY": 318
+        },
+        {
+          "name": "Queen-ASG-CF",
+          "resourceName": "aws_cloudformation_stack",
+          "attributes": {
+            "capabilities": "CAPABILITY_IAM",
+            "disable_rollback": null,
+            "name": "${var.environment}-${var.product}-Queen-ASG-CF",
+            "notification_arns": null,
+            "on_failure": null,
+            "parameters": "{\"AvailabilityZone1\":\"${element(data.aws_availability_zones.available.names, 0)}\",\"AvailabilityZone2\":\"${element(data.aws_availability_zones.available.names, 1)}\",\"QueenSubnet1\":\"${var.QueenSubnet1}\",\"QueenSubnet2\":\"${var.QueenSubnet2}\",\"Owner\":\"${var.owner}\",\"Name\":\"${var.environment}-${var.product}-Sophos-Autoscaling\",\"Environment\":\"${var.environment}\",\"QueenInstanceProfile\":\"${aws_iam_instance_profile.QueenInstance-Profile.name}\",\"imageId\":\"${var.ami}\",\"instanceType\":\"${var.InstanceSize}\",\"instanceType1\":\"${var.InstanceSize1}\",\"awsKeyName\":\"${var.KeyName}\",\"QueenSecurityGroup\":\"${aws_security_group.QueenSecurityGroup.id}\",\"TrustedNetworkGroup\":\"${aws_security_group.TrustedNetworkGroup.id}\",\"TrustedNetwork\":\"${var.TrustedNetwork}\",\"UntrustedGroup\":\"${aws_security_group.UntrustedGroup.id}\",\"Country\":\"${var.Country}\",\"HostName\":\"${var.environment}-${var.product}-sophos-ha-warm\",\"Organization\":\"${var.Organization}\",\"City\":\"${var.City}\",\"Email\":\"${var.Email}\",\"AdminPassword\":\"${var.AdminPassword}\",\"SwarmSecurityGroup\":\"${aws_security_group.SwarmSecurityGroup.id}\",\"elasticIP\":\"${aws_eip.Sophos_Autoscaling_EIP.public_ip}\",\"s3Bucket\":\"${aws_s3_bucket.sophos-autoscale-bucket.id}\",\"LoadBalancerSecurityGroup\":\"${aws_security_group.LoadBalancerSecurityGroup.id}\",\"ElasticLoadBalancer\":\"${aws_elb.Sophos-ElasticLoadBalancer.id}\",\"LoadBalancerReceiverSecurityGroup\":\"${aws_security_group.LoadBalancerReceiverSecurityGroup.id}\"}",
+            "policy_body": null,
+            "policy_url": null,
+            "tags": "{\"Owner\":\"${var.owner}\",\"CreatedBy\":\"REAN-Deploy\",\"Name\":\"${var.environment}-${var.product}-Queen_ASG_CF\",\"Environment\":\"${var.environment}\",\"Product\":\"${var.product}\"}",
+            "template_body": "{\r\n  \"AWSTemplateFormatVersion\": \"2010-09-09\",\r\n  \"Description\": \"Scalable UTM CloudFormation template -- AWSMP::3c5bc9ef-2b23-4a8c-b6ac-3fc4e08f8dec.e45964e5-9ff8-48c9-9d83-adccbafca1d6\",\r\n  \"Parameters\": {\r\n        \"AvailabilityZone1\": {\r\n            \"Description\": \"availability zone\",\r\n            \"Type\": \"AWS::EC2::AvailabilityZone::Name\"\r\n        },\r\n        \"AvailabilityZone2\": {\r\n            \"Description\": \"availability zone\",\r\n            \"Type\": \"AWS::EC2::AvailabilityZone::Name\"\r\n        },\r\n        \"QueenSubnet1\": {\r\n            \"Description\": \"public subnet id az-1\",\r\n            \"Type\": \"AWS::EC2::Subnet::Id\"\r\n        },\r\n        \"QueenSubnet2\": {\r\n            \"Description\": \"public subnet id az-2\",\r\n            \"Type\": \"AWS::EC2::Subnet::Id\"\r\n        },\r\n        \"Owner\": {\r\n            \"Description\": \"Owner Name\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"Name\": {\r\n            \"Description\": \"Name tag\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"Environment\": {\r\n            \"Description\": \"Environment tag\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"QueenInstanceProfile\": {\r\n            \"Description\": \"Instance profile name\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"imageId\": {\r\n            \"Description\": \"AMI id\",\r\n            \"Type\": \"AWS::EC2::Image::Id\"\r\n        },\r\n        \"instanceType\": {\r\n            \"Description\": \"Instance type\",\r\n            \"Type\": \"String\"\r\n        },\r\n\t\t\"instanceType1\": {\r\n            \"Description\": \"Instance type\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"awsKeyName\": {\r\n            \"Description\": \"Keypair name\",\r\n            \"Type\": \"AWS::EC2::KeyPair::KeyName\"\r\n        },\r\n        \"QueenSecurityGroup\": {\r\n            \"Description\": \"Sophos Security Group\",\r\n            \"Type\": \"AWS::EC2::SecurityGroup::Id\"\r\n        },\r\n        \"TrustedNetworkGroup\": {\r\n            \"Description\": \"Sophos Trusted Network Group\",\r\n            \"Type\": \"AWS::EC2::SecurityGroup::Id\"\r\n        },\r\n        \"UntrustedGroup\": {\r\n            \"Description\": \"Sophos Untrusted Group\",\r\n            \"Type\": \"AWS::EC2::SecurityGroup::Id\"\r\n        },\r\n        \"Country\": {\r\n            \"Description\": \"Country Name\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"HostName\": {\r\n            \"Description\": \"Hostname for Sophos UTM\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"Organization\": {\r\n            \"Description\": \"Organization name\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"City\": {\r\n            \"Description\": \"City Name\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"Email\": {\r\n            \"Description\": \"email id\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"AdminPassword\": {\r\n            \"Description\": \"admin password\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"elasticIP\": {\r\n            \"Description\": \"Elastic IP\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"s3Bucket\": {\r\n            \"Description\": \"s3 bucket name\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"vpcCIDR\": {\r\n            \"Description\": \"VPC CIDR\",\r\n            \"Type\": \"String\",\r\n            \"Default\": \"${var.vpc_cidr}\"\r\n        },\r\n\t\t\"debugMode\": {\r\n\t\t\t  \"Description\": \"Enable debug logging on the UTM instances (\\\"off\\\" to disable; \\\"on\\\" to enable)\",\r\n\t\t\t  \"Type\": \"String\",\r\n\t\t\t  \"AllowedValues\": [\r\n\t\t\t\t\"on\",\r\n\t\t\t\t\"off\"\r\n\t\t\t  ],\r\n\t\t\t  \"Default\": \"off\"\r\n\t\t\t},\r\n\t\t\"ElasticLoadBalancer\": {\r\n            \"Description\": \"ElasticLoadBalancer name\",\r\n            \"Type\": \"String\"\r\n        },\r\n\t\t\"LoadBalancerSecurityGroup\": {\r\n            \"Description\": \"LoadBalancerSecurityGroup name\",\r\n            \"Type\": \"String\"\r\n        },\r\n\t\t\"LoadBalancerReceiverSecurityGroup\": {\r\n            \"Description\": \"LoadBalancerReceiverSecurityGroup name\",\r\n            \"Type\": \"String\"\r\n        },\r\n\t\t\r\n\t\t\"SwarmSecurityGroup\": {\r\n            \"Description\": \"SwarmSecurityGroup name\",\r\n            \"Type\": \"String\"\r\n        },\r\n\t\t\"optionalLicensePool\": {\r\n            \"Description\": \"With BYOL the license is automatically fetched from the S3 bucket (one license per deployment). If you leave this field empty, you can install the license using WebAdmin.\",\r\n            \"Type\": \"String\",\r\n            \"Default\": \"\"\r\n        },\r\n\t\t\r\n\t\t\"TrustedNetwork\": {\r\n            \"Description\": \"TrustedNetwork\",\r\n            \"Type\": \"String\"\r\n        }\r\n\t\t\r\n  },\r\n\r\n  \"Resources\": {\r\n    \r\n    \"QueenScalingGroup\": {\r\n      \"Type\": \"AWS::AutoScaling::AutoScalingGroup\",\r\n     \r\n      \"UpdatePolicy\": {\r\n        \"AutoScalingRollingUpdate\": {\r\n          \"MinInstancesInService\": \"1\",\r\n          \"MaxBatchSize\": \"1\",\r\n          \"WaitOnResourceSignals\": \"true\",\r\n          \"PauseTime\": \"PT30M\"\r\n        }\r\n      },\r\n      \"Properties\": {\r\n        \"DesiredCapacity\": \"1\",\r\n        \"HealthCheckGracePeriod\": \"1200\",\r\n        \"MaxSize\": \"2\",\r\n        \"MinSize\": \"1\",\r\n        \"TerminationPolicies\": [\r\n          \"NewestInstance\"\r\n        ],\r\n        \"VPCZoneIdentifier\": [\r\n          {\r\n            \"Ref\": \"QueenSubnet1\"\r\n          },\r\n          {\r\n            \"Ref\": \"QueenSubnet2\"\r\n          }\r\n        ],\r\n        \"AvailabilityZones\": [\r\n          {\r\n            \"Ref\": \"AvailabilityZone1\"\r\n          },\r\n          {\r\n            \"Ref\": \"AvailabilityZone2\"\r\n          }\r\n        ],\r\n        \"LaunchConfigurationName\": {\r\n          \"Ref\": \"QueenLaunchConfiguration\"\r\n        },\r\n        \"Tags\": [\r\n          {\r\n            \"Key\": \"Name\",\r\n            \"Value\": \"Queen UTM\",\r\n            \"PropagateAtLaunch\": \"true\"\r\n          }\r\n        ]\r\n      }\r\n    },\r\n    \"QueenLaunchConfiguration\": {\r\n      \"Type\": \"AWS::AutoScaling::LaunchConfiguration\",\r\n      \"Properties\": {\r\n        \"AssociatePublicIpAddress\": true,\r\n        \"IamInstanceProfile\": {\r\n          \"Ref\": \"QueenInstanceProfile\"\r\n        },\r\n        \"ImageId\": {\r\n\t\t\t\t\t\"Ref\": \"imageId\"\r\n        },\r\n        \"InstanceType\": {\r\n\t\t\t\t\t\t\"Ref\": \"instanceType1\"\r\n        },\r\n        \"KeyName\": {\r\n          \"Ref\": \"awsKeyName\"\r\n        },\r\n        \"BlockDeviceMappings\": [\r\n          {\r\n            \"DeviceName\": \"/dev/xvda\",\r\n            \"Ebs\": {\r\n              \"VolumeSize\": \"100\"\r\n            }\r\n          }\r\n        ],\r\n        \"SecurityGroups\": [\r\n          {\r\n            \"Ref\": \"QueenSecurityGroup\"\r\n          },\r\n          {\r\n            \"Ref\": \"TrustedNetworkGroup\"\r\n          },\r\n          {\r\n            \"Ref\": \"UntrustedGroup\"\r\n          }\r\n        ],\r\n        \"UserData\": {\r\n          \"Fn::Base64\": {\r\n            \"Fn::Join\": [\r\n              \"\",\r\n              [\r\n                \"#!/bin/bash\\n\",\r\n                \"date +'UserData start %c' > /tmp/user_data.log\\n\",\r\n                \"cc=`/usr/local/bin/confd-client.plx country_name_to_code \\\"\",\r\n                {\r\n                  \"Ref\": \"Country\"\r\n                },\r\n                \"\\\"`\\n\",\r\n                \"echo \\\"{ hostname => '\",\r\n                {\r\n                  \"Ref\": \"HostName\"\r\n                },\r\n                \"', organization => '\",\r\n                {\r\n                  \"Ref\": \"Organization\"\r\n                },\r\n                \"', city => '\",\r\n                {\r\n                  \"Ref\": \"City\"\r\n                },\r\n                \"', country => '$cc', email => '\",\r\n                {\r\n                  \"Ref\": \"Email\"\r\n                },\r\n                \"', password => '\",\r\n                {\r\n                  \"Ref\": \"AdminPassword\"\r\n                },\r\n                \"' }\\\" > /var/confd/var/storage/setup.ph\\n\",\r\n                \"/etc/init.d/confd restart\\n\",\r\n                \"sleep 5\\n\",\r\n                \"/usr/local/bin/debugmode \",\r\n                {\r\n                  \"Ref\": \"debugMode\"\r\n                },\r\n                \"\\n\",\r\n                \"/opt/aws/apitools/cfn-init/bin/cfn-init -c queen_node -s \",\r\n                {\r\n                  \"Ref\": \"AWS::StackId\"\r\n                },\r\n                \" -r QueenLaunchConfiguration --region \",\r\n                {\r\n                  \"Ref\": \"AWS::Region\"\r\n                },\r\n                \" >> /tmp/user_data.log 2>&1 || echo 'Failed to run cfn-init' >> /tmp/user_data.log\\n\",\r\n                \"/usr/libexec/cloud/confd_apply.sh /tmp/user_data.config >> /tmp/user_data.log\\n\",\r\n                \"date +'UserData aws deamons start %c' >> /tmp/user_data.log\\n\",\r\n                \"/etc/init.d/ha_aws start\\n\",\r\n                \"/etc/init.d/queen_config_management start\\n\",\r\n                \"/etc/init.d/aws_resource_management start\\n\",\r\n                \"date +'UserData aws deamons end %c' >> /tmp/user_data.log\\n\",\r\n                \"/usr/local/bin/aws_set_sd_check disable >> /tmp/user_data.log\\n\",\r\n                \"/usr/local/bin/confd-client.plx trigger ha_aws\\n\",\r\n                \"/opt/aws/apitools/cfn-init/bin/cfn-signal -e 0 --stack \",\r\n                {\r\n                  \"Ref\": \"AWS::StackName\"\r\n                },\r\n                \" --resource QueenScalingGroup \",\r\n                \" --region \",\r\n                {\r\n                  \"Ref\": \"AWS::Region\"\r\n                },\r\n                \"\\n\",\r\n                \"/usr/bin/sg-iaas ogw-create-cw-role >> /tmp/user_data.log 2>&1\\n\",\r\n                \"exit 0\\n\"\r\n              ]\r\n            ]\r\n          }\r\n        }\r\n      },\r\n      \"Metadata\": {\r\n        \"AWS::CloudFormation::Init\": {\r\n          \"configSets\": {\r\n            \"queen_node\": [\r\n              \"queen_config\"\r\n            ]\r\n          },\r\n          \"queen_config\": {\r\n            \"files\": {\r\n              \"/etc/cloud/user_data.yml\": {\r\n                \"mode\": \"0644\",\r\n                \"owner\": \"root\",\r\n                \"group\": \"root\",\r\n                \"content\": {\r\n                  \"Fn::Join\": [\r\n                    \"\",\r\n                    [\r\n                      \"version: 0.1.0\\n\",\r\n                      \"instance_role: queen\\n\",\r\n                      \"deployment_type: autoscaling\\n\",\r\n                      \"license_pool: \",\r\n                      {\r\n                        \"Ref\": \"optionalLicensePool\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"s3_bucket: \",\r\n                      {\r\n                        \"Ref\": \"s3Bucket\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"config_prefix: config_management/\\n\",\r\n                      \"elastic_ip: \",\r\n                      {\r\n                         \"Ref\": \"elasticIP\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"stack_name: \",\r\n                      {\r\n                        \"Ref\": \"AWS::StackName\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"region: \",\r\n                      {\r\n                        \"Ref\": \"AWS::Region\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"aws_partition: \",\r\n                      {\r\n                        \"Ref\": \"AWS::Region\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"debugMode: \",\r\n                      {\r\n                        \"Ref\": \"debugMode\"\r\n                      },\r\n                      \"\\n\"\r\n                    ]\r\n                  ]\r\n                }\r\n              },\r\n              \"/tmp/user_data.config\": {\r\n                \"mode\": \"0644\",\r\n                \"owner\": \"root\",\r\n                \"group\": \"root\",\r\n                \"content\": {\r\n                  \"Fn::Join\": [\r\n                    \"\",\r\n                    [\r\n                      \"{\\n\",\r\n                      \"\\\"confd\\\" => { \\\"backup\\\" => 1, \\\"backup_interval\\\" => 300, \\\"restore\\\" => 1, \\\"restore_done\\\" => 0 },\\n\",\r\n                      \"\\\"postgres\\\" => { \\\"archive_timeout\\\" => 300, \\\"backup\\\" => 1, \\\"base_backup_interval\\\" => 3600, \\\"restore\\\" => 1 },\\n\",\r\n                      \"\\\"syslog\\\" => { \\\"backup\\\" => 1, \\\"restore\\\" => 1, \\\"restore_period\\\" => 8 },\\n\",\r\n                      \"\\\"s3_bucket\\\" => \\\"\",\r\n                      {\r\n\t\t\t\t\t\t\"Ref\": \"s3Bucket\"\r\n                      },\r\n                      \"\\\",\\n\",\r\n                      \"\\\"stack_name\\\" => \\\"\",\r\n                      {\r\n                        \"Ref\": \"AWS::StackName\"\r\n                      },\r\n                      \"\\\",\\n\",\r\n                      \"\\\"elastic_ip\\\" => \\\"\",\r\n                      {\r\n                        \"Ref\": \"elasticIP\"\r\n                      },\r\n                      \"\\\",\\n\",\r\n                      \"\\\"trusted_network\\\" => \\\"\",\r\n                      {\r\n                        \"Ref\": \"TrustedNetwork\"\r\n                      },\r\n                      \"\\\"\\n\",\r\n                      \"}\\n\"\r\n                    ]\r\n                  ]\r\n                }\r\n              },\r\n              \"/etc/cloud/resource-catalog.yml\": {\r\n                \"mode\": \"0644\",\r\n                \"owner\": \"root\",\r\n                \"group\": \"root\",\r\n                \"content\": {\r\n                  \"Fn::Join\": [\r\n                    \"\",\r\n                    [\r\n                      \"elb: \",\r\n                      {\r\n                        \"Ref\": \"ElasticLoadBalancer\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"elb_security_group: \",\r\n                      {\r\n                        \"Ref\": \"LoadBalancerSecurityGroup\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"elb_destination_security_group: \",\r\n                      {\r\n                        \"Ref\": \"LoadBalancerReceiverSecurityGroup\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"frontend_security_group: \",\r\n                      {\r\n                        \"Ref\": \"LoadBalancerReceiverSecurityGroup\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"\\n\",\r\n                      \"infrastructure:\\n\",\r\n                      \"  security_groups:\\n\",\r\n                      \"    - \",\r\n                      {\r\n                        \"Ref\": \"TrustedNetworkGroup\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"    - \",\r\n                      {\r\n                        \"Ref\": \"UntrustedGroup\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"    - \",\r\n                      {\r\n                        \"Ref\": \"QueenSecurityGroup\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"    - \",\r\n                      {\r\n                        \"Ref\": \"SwarmSecurityGroup\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"  elbs:\\n\"\r\n                    ]\r\n                  ]\r\n                }\r\n              },\r\n              \"/etc/cloud/inf-resources.yml\": {\r\n                \"mode\": \"0644\",\r\n                \"owner\": \"root\",\r\n                \"group\": \"root\",\r\n                \"content\": {\r\n                  \"Fn::Join\": [\r\n                    \"\",\r\n                    [\r\n                      \"security_groups:\\n\",\r\n                      \"  \",\r\n                      {\r\n                        \"Ref\": \"QueenSecurityGroup\"\r\n                      },\r\n                      \":\\n\",\r\n                      \"    incoming:\\n\",\r\n                      \"      - from_port: 514\\n\",\r\n                      \"        to_port: 514\\n\",\r\n                      \"        protocol: UDP\\n\",\r\n                      \"        source: \",\r\n                      {\r\n                        \"Ref\": \"SwarmSecurityGroup\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"    outgoing:\\n\",\r\n                      \"      - from_port: 0\\n\",\r\n                      \"        to_port: 65535\\n\",\r\n                      \"        protocol: TCP\\n\",\r\n                      \"        source: 202.65.158.154/32\\n\",\r\n                      \"      - from_port: 0\\n\",\r\n                      \"        to_port: 65535\\n\",\r\n                      \"        protocol: UDP\\n\",\r\n                      \"        source: 202.65.158.154/32\\n\",\r\n                      \"  \",\r\n                      {\r\n                        \"Ref\": \"TrustedNetworkGroup\"\r\n                      },\r\n                      \":\\n\",\r\n                      \"    incoming:\\n\",\r\n                      \"      - from_port: 0\\n\",\r\n                      \"        to_port: 65535\\n\",\r\n                      \"        protocol: TCP\\n\",\r\n                      \"        source: \",\r\n                      {\r\n                        \"Ref\": \"TrustedNetwork\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"  \",\r\n                      {\r\n                        \"Ref\": \"UntrustedGroup\"\r\n                      },\r\n                      \":\\n\",\r\n                      \"    incoming:\\n\",\r\n                      \"      - from_port: 0\\n\",\r\n                      \"        to_port: 21\\n\",\r\n                      \"        protocol: TCP\\n\",\r\n                      \"        source: 202.65.158.154/32\\n\",\r\n                      \"      - from_port: 23\\n\",\r\n                      \"        to_port: 4443\\n\",\r\n                      \"        protocol: TCP\\n\",\r\n                      \"        source: 202.65.158.154/32\\n\",\r\n                      \"      - from_port: 4445\\n\",\r\n                      \"        to_port: 5431\\n\",\r\n                      \"        protocol: TCP\\n\",\r\n                      \"        source: 202.65.158.154/32\\n\",\r\n                      \"      - from_port: 5433\\n\",\r\n                      \"        to_port: 65535\\n\",\r\n                      \"        protocol: TCP\\n\",\r\n                      \"        source: 202.65.158.154/32\\n\",\r\n                      \"      - from_port: 3410\\n\",\r\n                      \"        to_port: 3410\\n\",\r\n                      \"        protocol: UDP\\n\",\r\n                      \"        source: 202.65.158.154/32\\n\",\r\n                      \"  \",\r\n                      {\r\n                        \"Ref\": \"SwarmSecurityGroup\"\r\n                      },\r\n                      \":\\n\",\r\n                      \"    outgoing:\\n\",\r\n                      \"      - from_port: 0\\n\",\r\n                      \"        to_port: 65535\\n\",\r\n                      \"        protocol: ANY\\n\",\r\n                      \"        source: 0.0.0.0/0\\n\",\r\n                      \"elbs:\\n\"\r\n                    ]\r\n                  ]\r\n                }\r\n              }\r\n            }\r\n          }\r\n        }\r\n      }\r\n    }\r\n },\r\n  \"Outputs\": {\r\n    \"QueenScalingGroup\": {\r\n      \"Value\": {\r\n        \"Ref\": \"QueenScalingGroup\"\r\n      }\r\n    }\r\n  }\r\n}\r\n",
+            "template_url": null,
+            "timeout_in_minutes": null
+          },
+          "positionX": 509,
+          "positionY": 349
+        },
+        {
+          "name": "QueenInstance-Profile",
+          "resourceName": "aws_iam_instance_profile",
+          "attributes": {
+            "name": "${var.environment}-${var.product}-QueenInstance-Profile",
+            "name_prefix": null,
+            "path": "/",
+            "role": "${QueenRole.id}"
+          },
+          "positionX": 28,
+          "positionY": 315
+        },
+        {
+          "name": "QueenRole",
+          "resourceName": "aws_iam_role",
+          "attributes": {
+            "assume_role_policy": "{\n    \"Version\": \"2012-10-17\",\n          \"Statement\": [\n            {\n              \"Effect\": \"Allow\",\n              \"Principal\": {\n                \"Service\": [\n                  \"ec2.amazonaws.com\"\n                ]\n              },\n              \"Action\": [\n                \"sts:AssumeRole\"\n              ]\n            }\n          ]\n        }",
+            "name": "${var.environment}-${var.product}-QueenRole",
+            "name_prefix": null,
+            "path": "/"
+          },
+          "positionX": 54,
+          "positionY": 211
+        },
+        {
+          "name": "QueenSecurityGroup",
+          "resourceName": "aws_security_group",
+          "attributes": {
+            "description": null,
+            "egress": "[{\"from_port\":0,\"to_port\":65535,\"protocol\":\"tcp\",\"cidr_blocks\":[\"0.0.0.0/0\"]},[{\"from_port\":0,\"to_port\":65535,\"protocol\":\"udp\",\"cidr_blocks\":[\"0.0.0.0/0\"]}]]",
+            "ingress": "[]",
+            "name": "${var.environment}-${var.product}-QueenSecurityGroup",
+            "tags": "{\"Owner\":\"${var.owner}\",\"CreatedBy\":\"REAN-Deploy\",\"Name\":\"${var.environment}-${var.product}-QueenSecurityGroup\",\"Environment\":\"${var.environment}\",\"Product\":\"${var.product}\"}",
+            "vpc_id": "${var.vpc_id}"
+          },
+          "positionX": 825,
+          "positionY": 68
+        },
+        {
+          "name": "sophos-autoscale-bucket",
+          "resourceName": "aws_s3_bucket",
+          "attributes": {
+            "acceleration_status": null,
+            "acl": "private",
+            "bucket": "sophos-autoscale-bucket",
+            "cors_rule": null,
+            "force_destroy": "",
+            "lifecycle_rule": "[{\"prefix\":\"confd_backup\",\"expiration\":{\"days\":\"3\"},\"enabled\":true},{\"prefix\":\"postgres_basebackup\",\"expiration\":{\"days\":\"3\"},\"enabled\":true},{\"prefix\":\"postgres_wal\",\"expiration\":{\"days\":\"3\"},\"enabled\":true},{\"prefix\":\"adbs/tmp\",\"expiration\":{\"days\":\"3\"},\"enabled\":true},{\"prefix\":\"adbs/new\",\"expiration\":{\"days\":\"6\"},\"enabled\":true},{\"prefix\":\"adbs/cur\",\"expiration\":{\"days\":\"9\"},\"enabled\":true}]",
+            "logging": null,
+            "policy": "",
+            "region": "${data.aws_region.current.name}",
+            "replication_configuration": null,
+            "request_payer": null,
+            "tags": "{\"Owner\":\"${var.owner}\",\"CreatedBy\":\"REAN-Deploy\",\"Name\":\"${var.environment}-${var.product}-Sophos-HA-Warm-Bucket\",\"Environment\":\"${var.environment}\",\"Product\":\"${var.product}\"}",
+            "versioning": null,
+            "website": null
+          },
+          "positionX": 539,
+          "positionY": 192,
+          "preventDestroy": true
+        },
+        {
+          "name": "Sophos-ElasticLoadBalancer",
+          "resourceName": "aws_elb",
+          "attributes": {
+            "access_logs": null,
+            "connection_draining": "false",
+            "connection_draining_timeout": "300",
+            "cross_zone_load_balancing": "true",
+            "health_check": "{\"healthy_threshold\":3,\"unhealthy_threshold\":5,\"target\":\"HTTP:80/\",\"interval\":5,\"timeout\":2}",
+            "idle_timeout": "60",
+            "instances": null,
+            "internal": "false",
+            "listener": "{\"instance_port\":80,\"instance_protocol\":\"tcp\",\"lb_port\":80,\"lb_protocol\":\"tcp\"}",
+            "name": "Sophos-ElasticLoadBalancer",
+            "security_groups": null,
+            "subnets": "${var.SwarmSubnet1}\n${var.SwarmSubnet2}",
+            "tags": "{\"Owner\":\"Amily\",\"CreatedBy\":\"REAN Deploy\",\"Name\":\"Sophos-ElasticLoadBalancer\"}"
+          },
+          "positionX": 797,
+          "positionY": 114
+        },
+        {
+          "name": "Sophos_Autoscaling_EIP",
+          "resourceName": "aws_eip",
+          "attributes": {
+            "associate_with_private_ip": null,
+            "instance": "",
+            "network_interface": null,
+            "vpc": "true"
+          },
+          "dependsOn": "",
+          "positionX": 545,
+          "positionY": 18
+        },
+        {
+          "name": "Swarm-ASG-CF",
+          "resourceName": "aws_cloudformation_stack",
+          "attributes": {
+            "capabilities": "CAPABILITY_IAM",
+            "disable_rollback": null,
+            "name": "${var.environment}-${var.product}-Swarm-ASG-CF",
+            "notification_arns": null,
+            "on_failure": null,
+            "parameters": "{\"AvailabilityZone1\":\"${element(data.aws_availability_zones.available.names, 0)}\",\"AvailabilityZone2\":\"${element(data.aws_availability_zones.available.names, 1)}\",\"SwarmSubnet1\":\"${var.SwarmSubnet1}\",\"SwarmSubnet2\":\"${var.SwarmSubnet2}\",\"WorkerInstanceProfile\":\"${aws_iam_instance_profile.WorkerInstance-Profile.name}\",\"Owner\":\"${var.owner}\",\"Name\":\"${var.environment}-${var.product}-Sophos-Autoscaling\",\"Environment\":\"${var.environment}\",\"imageId\":\"${var.ami}\",\"instanceType\":\"${var.InstanceSize}\",\"instanceType1\":\"${var.InstanceSize1}\",\"awsKeyName\":\"${var.KeyName}\",\"TrustedNetworkGroup\":\"${aws_security_group.TrustedNetworkGroup.id}\",\"TrustedNetwork\":\"${var.TrustedNetwork}\",\"UntrustedGroup\":\"${aws_security_group.UntrustedGroup.id}\",\"LoadBalancerReceiverSecurityGroup\":\"${aws_security_group.LoadBalancerReceiverSecurityGroup.id}\",\"SwarmSecurityGroup\":\"${aws_security_group.SwarmSecurityGroup.id}\",\"s3Bucket\":\"${aws_s3_bucket.sophos-autoscale-bucket.id}\",\"LoadBalancerSecurityGroup\":\"${aws_security_group.LoadBalancerSecurityGroup.id}\",\"ElasticLoadBalancer\":\"${aws_elb.Sophos-ElasticLoadBalancer.id}\"}",
+            "policy_body": null,
+            "policy_url": null,
+            "tags": "{\"Owner\":\"Amily\",\"CreatedBy\":\"REAN Deploy\",\"Name\":\"Swarm-ASG-CF\"}",
+            "template_body": "{\r\n  \"AWSTemplateFormatVersion\": \"2010-09-09\",\r\n  \"Description\": \"Scalable UTM CloudFormation template -- AWSMP::3c5bc9ef-2b23-4a8c-b6ac-3fc4e08f8dec.e45964e5-9ff8-48c9-9d83-adccbafca1d6\",\r\n  \"Parameters\": {\r\n        \"AvailabilityZone1\": {\r\n            \"Description\": \"availability zone\",\r\n            \"Type\": \"AWS::EC2::AvailabilityZone::Name\"\r\n        },\r\n        \"AvailabilityZone2\": {\r\n            \"Description\": \"availability zone\",\r\n            \"Type\": \"AWS::EC2::AvailabilityZone::Name\"\r\n        },\r\n        \"Owner\": {\r\n            \"Description\": \"Owner Name\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"Name\": {\r\n            \"Description\": \"Name tag\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"Environment\": {\r\n            \"Description\": \"Environment tag\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"imageId\": {\r\n            \"Description\": \"AMI id\",\r\n            \"Type\": \"AWS::EC2::Image::Id\"\r\n        },\r\n        \"instanceType\": {\r\n            \"Description\": \"Instance type\",\r\n            \"Type\": \"String\"\r\n        },\r\n\t\t\"instanceType1\": {\r\n            \"Description\": \"Instance type\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"awsKeyName\": {\r\n            \"Description\": \"Keypair name\",\r\n            \"Type\": \"AWS::EC2::KeyPair::KeyName\"\r\n        },\r\n        \"TrustedNetworkGroup\": {\r\n            \"Description\": \"Sophos Trusted Network Group\",\r\n            \"Type\": \"AWS::EC2::SecurityGroup::Id\"\r\n        },\r\n        \"UntrustedGroup\": {\r\n            \"Description\": \"Sophos Untrusted Group\",\r\n            \"Type\": \"AWS::EC2::SecurityGroup::Id\"\r\n        },\r\n        \"s3Bucket\": {\r\n            \"Description\": \"s3 bucket name\",\r\n            \"Type\": \"String\"\r\n        },\r\n        \"vpcCIDR\": {\r\n            \"Description\": \"VPC CIDR\",\r\n            \"Type\": \"String\",\r\n            \"Default\": \"${var.vpc_cidr}\"\r\n        },\r\n\t\t\"debugMode\": {\r\n\t\t\t  \"Description\": \"Enable debug logging on the UTM instances (\\\"off\\\" to disable; \\\"on\\\" to enable)\",\r\n\t\t\t  \"Type\": \"String\",\r\n\t\t\t  \"AllowedValues\": [\r\n\t\t\t\t\"on\",\r\n\t\t\t\t\"off\"\r\n\t\t\t  ],\r\n\t\t\t  \"Default\": \"off\"\r\n\t\t\t},\r\n\t\t\"ElasticLoadBalancer\": {\r\n            \"Description\": \"ElasticLoadBalancer name\",\r\n            \"Type\": \"String\"\r\n        },\r\n\t\t\"LoadBalancerSecurityGroup\": {\r\n            \"Description\": \"LoadBalancerSecurityGroup name\",\r\n            \"Type\": \"String\"\r\n        },\r\n\t\t\"LoadBalancerReceiverSecurityGroup\": {\r\n            \"Description\": \"LoadBalancerReceiverSecurityGroup name\",\r\n            \"Type\": \"String\"\r\n        },\r\n\t\t\r\n\t\t\"SwarmSecurityGroup\": {\r\n            \"Description\": \"SwarmSecurityGroup name\",\r\n            \"Type\": \"String\"\r\n        },\r\n\t\t\"optionalLicensePool\": {\r\n            \"Description\": \"With BYOL the license is automatically fetched from the S3 bucket (one license per deployment). If you leave this field empty, you can install the license using WebAdmin.\",\r\n            \"Type\": \"String\",\r\n            \"Default\": \"\"\r\n        },\r\n\t\t\"WorkerInstanceProfile\": {\r\n            \"Description\": \"Instance profile name\",\r\n            \"Type\": \"String\"\r\n        },\r\n\t\t\"SwarmSubnet1\": {\r\n            \"Description\": \"public subnet id az-1\",\r\n            \"Type\": \"AWS::EC2::Subnet::Id\"\r\n        },\r\n        \"SwarmSubnet2\": {\r\n            \"Description\": \"public subnet id az-2\",\r\n            \"Type\": \"AWS::EC2::Subnet::Id\"\r\n        },\r\n\t\t\"TrustedNetwork\": {\r\n            \"Description\": \"TrustedNetwork\",\r\n            \"Type\": \"String\"\r\n        }\r\n\t\t\r\n  },\r\n\r\n  \"Resources\": {\r\n    \"SwarmScalingGroup\": {\r\n      \"Type\": \"AWS::AutoScaling::AutoScalingGroup\",\r\n\t  \"UpdatePolicy\": {\r\n        \"AutoScalingRollingUpdate\": {\r\n          \"MinInstancesInService\": \"2\",\r\n          \"MaxBatchSize\": \"1\",\r\n          \"WaitOnResourceSignals\": \"true\",\r\n          \"PauseTime\": \"PT30M\"\r\n        }\r\n      },\r\n      \"Properties\": {\r\n        \"DesiredCapacity\": \"2\",\r\n        \"HealthCheckGracePeriod\": \"1200\",\r\n        \"MaxSize\": \"100\",\r\n        \"MinSize\": \"2\",\r\n        \"TerminationPolicies\": [\r\n          \"Default\"\r\n        ],\r\n        \"VPCZoneIdentifier\": [\r\n          {\r\n            \"Ref\": \"SwarmSubnet1\"\r\n          },\r\n          {\r\n            \"Ref\": \"SwarmSubnet2\"\r\n          }\r\n        ],\r\n        \"AvailabilityZones\": [\r\n          {\r\n            \"Ref\": \"AvailabilityZone1\"\r\n          },\r\n          {\r\n            \"Ref\": \"AvailabilityZone2\"\r\n          }\r\n        ],\r\n        \"LaunchConfigurationName\": {\r\n          \"Ref\": \"SwarmLaunchConfiguration\"\r\n        },\r\n        \"Tags\": [\r\n          {\r\n            \"Key\": \"Name\",\r\n            \"Value\": \"Worker UTM\",\r\n            \"PropagateAtLaunch\": \"true\"\r\n          }\r\n        ],\r\n        \"LoadBalancerNames\": [\r\n          {\r\n            \"Ref\": \"ElasticLoadBalancer\"\r\n          }\r\n        ]\r\n      }\r\n    },\r\n    \"SwarmLaunchConfiguration\": {\r\n      \"Type\": \"AWS::AutoScaling::LaunchConfiguration\",\r\n      \"Properties\": {\r\n        \"AssociatePublicIpAddress\": true,\r\n        \"IamInstanceProfile\": {\r\n          \"Ref\": \"WorkerInstanceProfile\"\r\n        },\r\n        \"ImageId\": {\r\n                    \"Ref\": \"imageId\"\r\n                },\r\n        \"InstanceType\": {\r\n\t\t\t\t\t\t\"Ref\": \"instanceType\"\r\n                },\r\n        \"KeyName\": {\r\n          \"Ref\": \"awsKeyName\"\r\n        },\r\n        \"BlockDeviceMappings\": [\r\n          {\r\n            \"DeviceName\": \"/dev/xvda\",\r\n            \"Ebs\": {\r\n              \"VolumeSize\": \"100\"\r\n            }\r\n          }\r\n        ],\r\n        \"SecurityGroups\": [\r\n          {\r\n            \"Ref\": \"SwarmSecurityGroup\"\r\n          },\r\n          {\r\n            \"Ref\": \"TrustedNetworkGroup\"\r\n          },\r\n          {\r\n            \"Ref\": \"LoadBalancerReceiverSecurityGroup\"\r\n          }\r\n        ],\r\n        \"UserData\": {\r\n          \"Fn::Base64\": {\r\n            \"Fn::Join\": [\r\n              \"\",\r\n              [\r\n                \"#!/bin/bash\\n\",\r\n                \"date +'UserData start %c' > /tmp/user_data.log\\n\",\r\n                \"sed -i 's/^/#/' /etc/crontab.reporting\\n\",\r\n                \"/usr/local/bin/confd-client.plx trigger crontab\\n\",\r\n                \"export shared_secret=$(< /dev/urandom  tr -dc _A-Z-a-z-0-9 | head -c$${1:-32})\\n\",\r\n                \"/opt/aws/apitools/cfn-init/bin/cfn-init -c swarm_node -s \",\r\n                {\r\n                  \"Ref\": \"AWS::StackId\"\r\n                },\r\n                \" -r SwarmLaunchConfiguration --region \",\r\n                {\r\n                  \"Ref\": \"AWS::Region\"\r\n                },\r\n                \" >> /tmp/user_data.log 2>&1 || echo 'Failed to run cfn-init' >> /tmp/user_data.log\\n\",\r\n                \"/etc/init.d/mdw restart && sleep 10\\n\",\r\n                \"/etc/init.d/httpd restart\\n\",\r\n                \"/etc/init.d/worker_config_management start\\n\",\r\n                \"/opt/aws/apitools/cfn-init/bin/cfn-signal -e 0 --stack \",\r\n                {\r\n                  \"Ref\": \"AWS::StackName\"\r\n                },\r\n                \" --resource SwarmScalingGroup \",\r\n                \" --region \",\r\n                {\r\n                  \"Ref\": \"AWS::Region\"\r\n                },\r\n                \"\\n\",\r\n                \"exit 0\\n\"\r\n              ]\r\n            ]\r\n          }\r\n        }\r\n      },\r\n      \"Metadata\": {\r\n        \"AWS::CloudFormation::Init\": {\r\n          \"configSets\": {\r\n            \"swarm_node\": [\r\n              \"swarm_config\"\r\n            ]\r\n          },\r\n          \"swarm_config\": {\r\n            \"files\": {\r\n              \"/etc/cloud/user_data.yml\": {\r\n                \"mode\": \"0644\",\r\n                \"owner\": \"root\",\r\n                \"group\": \"root\",\r\n                \"content\": {\r\n                  \"Fn::Join\": [\r\n                    \"\",\r\n                    [\r\n                      \"version: 0.1.0\\n\",\r\n                      \"instance_role: worker\\n\",\r\n                      \"deployment_type: autoscaling\\n\",\r\n                      \"license_pool: \",\r\n                      {\r\n                        \"Ref\": \"optionalLicensePool\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"s3_bucket: \",\r\n                      {\r\n                        \"Ref\": \"s3Bucket\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"config_prefix: config_management/\\n\",\r\n                      \"region: \",\r\n                      {\r\n                        \"Ref\": \"AWS::Region\"\r\n                      },\r\n                      \"\\n\",\r\n                      \"aws_partition: \",\r\n                      {\r\n                        \"Ref\": \"AWS::Region\"\r\n                      },\r\n                      \"\\n\"\r\n                    ]\r\n                  ]\r\n                }\r\n              }\r\n            }\r\n          }\r\n        }\r\n      }\r\n    },\r\n    \"SwarmScaleUpPolicy\": {\r\n      \"Type\": \"AWS::AutoScaling::ScalingPolicy\",\r\n      \"Properties\": {\r\n        \"AdjustmentType\": \"ChangeInCapacity\",\r\n        \"AutoScalingGroupName\": {\r\n          \"Ref\": \"SwarmScalingGroup\"\r\n        },\r\n        \"Cooldown\": \"60\",\r\n        \"ScalingAdjustment\": \"1\"\r\n      }\r\n    },\r\n    \"SwarmScaleDownPolicy\": {\r\n      \"Type\": \"AWS::AutoScaling::ScalingPolicy\",\r\n      \"Properties\": {\r\n        \"AdjustmentType\": \"ChangeInCapacity\",\r\n        \"AutoScalingGroupName\": {\r\n          \"Ref\": \"SwarmScalingGroup\"\r\n        },\r\n        \"Cooldown\": \"60\",\r\n        \"ScalingAdjustment\": \"-1\"\r\n      }\r\n    },\r\n    \"SwarmCPUAlarmHigh\": {\r\n      \"Type\": \"AWS::CloudWatch::Alarm\",\r\n      \"Properties\": {\r\n        \"AlarmDescription\": \"Scale-up if CPU > 60% for 2 minutes\",\r\n        \"MetricName\": \"CPUUtilization\",\r\n        \"Namespace\": \"AWS/EC2\",\r\n        \"Statistic\": \"Average\",\r\n        \"Period\": \"60\",\r\n        \"EvaluationPeriods\": \"2\",\r\n        \"Threshold\": \"70\",\r\n        \"AlarmActions\": [\r\n          {\r\n            \"Ref\": \"SwarmScaleUpPolicy\"\r\n          }\r\n        ],\r\n        \"Dimensions\": [\r\n          {\r\n            \"Name\": \"AutoScalingGroupName\",\r\n            \"Value\": {\r\n              \"Ref\": \"SwarmScalingGroup\"\r\n            }\r\n          }\r\n        ],\r\n        \"ComparisonOperator\": \"GreaterThanThreshold\"\r\n      }\r\n    },\r\n    \"SwarmCPUAlarmVeryHigh\": {\r\n      \"Type\": \"AWS::CloudWatch::Alarm\",\r\n      \"Properties\": {\r\n        \"AlarmDescription\": \"Scale-up if CPU > 85% for 1 minute\",\r\n        \"MetricName\": \"CPUUtilization\",\r\n        \"Namespace\": \"AWS/EC2\",\r\n        \"Statistic\": \"Average\",\r\n        \"Period\": \"60\",\r\n        \"EvaluationPeriods\": \"1\",\r\n        \"Threshold\": \"85\",\r\n        \"AlarmActions\": [\r\n          {\r\n            \"Ref\": \"SwarmScaleUpPolicy\"\r\n          }\r\n        ],\r\n        \"Dimensions\": [\r\n          {\r\n            \"Name\": \"AutoScalingGroupName\",\r\n            \"Value\": {\r\n              \"Ref\": \"SwarmScalingGroup\"\r\n            }\r\n          }\r\n        ],\r\n        \"ComparisonOperator\": \"GreaterThanThreshold\"\r\n      }\r\n    },\r\n    \"SwarmCPUAlarmLow\": {\r\n      \"Type\": \"AWS::CloudWatch::Alarm\",\r\n      \"Properties\": {\r\n        \"AlarmDescription\": \"Scale-down if CPU < 40% for 3 minutes\",\r\n        \"MetricName\": \"CPUUtilization\",\r\n        \"Namespace\": \"AWS/EC2\",\r\n        \"Statistic\": \"Average\",\r\n        \"Period\": \"60\",\r\n        \"EvaluationPeriods\": \"3\",\r\n        \"Threshold\": \"40\",\r\n        \"AlarmActions\": [\r\n          {\r\n            \"Ref\": \"SwarmScaleDownPolicy\"\r\n          }\r\n        ],\r\n        \"Dimensions\": [\r\n          {\r\n            \"Name\": \"AutoScalingGroupName\",\r\n            \"Value\": {\r\n              \"Ref\": \"SwarmScalingGroup\"\r\n            }\r\n          }\r\n        ],\r\n        \"ComparisonOperator\": \"LessThanThreshold\"\r\n      }\r\n    }\r\n },\r\n  \"Outputs\": {\r\n    \r\n\t\"SwarmScalingGroup\":  {\r\n      \"Value\": {\r\n        \"Ref\": \"SwarmScalingGroup\"\r\n      }\r\n    },\r\n\t\"SwarmScaleUpPolicy\":  {\r\n      \"Value\": {\r\n        \"Ref\": \"SwarmScaleUpPolicy\"\r\n      }\r\n    },\r\n\t\"SwarmScaleDownPolicy\":  {\r\n      \"Value\": {\r\n        \"Ref\": \"SwarmScaleDownPolicy\"\r\n      }\r\n    }\r\n  }\r\n}\r\n",
+            "template_url": null,
+            "timeout_in_minutes": null
+          },
+          "positionX": 500,
+          "positionY": 274
+        },
+        {
+          "name": "SwarmCPUAlarmHigh",
+          "resourceName": "aws_cloudwatch_metric_alarm",
+          "attributes": {
+            "actions_enabled": "true",
+            "alarm_actions": "${Swarm-ASG-CF.outputs[\"SwarmScaleUpPolicy\"]}",
+            "alarm_description": null,
+            "alarm_name": "${var.environment}-${var.product}-SwarmCPUAlarmHigh",
+            "comparison_operator": "GreaterThanThreshold",
+            "dimensions": "{\"AutoScalingGroupName\":\"${Swarm-ASG-CF.outputs[\\\"SwarmScalingGroup\\\"]}\"}",
+            "evaluation_periods": "2",
+            "extended_statistic": null,
+            "insufficient_data_actions": null,
+            "metric_name": "CPUUtilization",
+            "namespace": "AWS/EC2",
+            "ok_actions": null,
+            "period": "60",
+            "statistic": "Average",
+            "threshold": "70",
+            "unit": null
+          },
+          "positionX": 299,
+          "positionY": 112
+        },
+        {
+          "name": "SwarmCPUAlarmLow",
+          "resourceName": "aws_cloudwatch_metric_alarm",
+          "attributes": {
+            "actions_enabled": "true",
+            "alarm_actions": "${Swarm-ASG-CF.outputs[\"SwarmScaleDownPolicy\"]}\n",
+            "alarm_description": null,
+            "alarm_name": "${var.environment}-${var.product}-SwarmCPUAlarmLow",
+            "comparison_operator": "LessThanThreshold",
+            "dimensions": "{\"AutoScalingGroupName\":\"${Swarm-ASG-CF.outputs[\\\"SwarmScalingGroup\\\"]}\"}",
+            "evaluation_periods": "3",
+            "extended_statistic": null,
+            "insufficient_data_actions": null,
+            "metric_name": "NetworkIn",
+            "namespace": "AWS/EC2",
+            "ok_actions": null,
+            "period": "60",
+            "statistic": "Average",
+            "threshold": "40",
+            "unit": null
+          },
+          "positionX": 279,
+          "positionY": 201
+        },
+        {
+          "name": "SwarmCPUAlarmVeryHigh",
+          "resourceName": "aws_cloudwatch_metric_alarm",
+          "attributes": {
+            "actions_enabled": "true",
+            "alarm_actions": "${Swarm-ASG-CF.outputs[\"SwarmScaleUpPolicy\"]}",
+            "alarm_description": null,
+            "alarm_name": "${var.environment}-${var.product}-SwarmCPUAlarmVeryHigh",
+            "comparison_operator": "GreaterThanThreshold",
+            "dimensions": "{\"AutoScalingGroupName\":\"${Swarm-ASG-CF.outputs[\\\"SwarmScalingGroup\\\"]}\"}",
+            "evaluation_periods": "1",
+            "extended_statistic": null,
+            "insufficient_data_actions": null,
+            "metric_name": "NetworkOut",
+            "namespace": "AWS/EC2",
+            "ok_actions": null,
+            "period": "60",
+            "statistic": "Average",
+            "threshold": "85",
+            "unit": null
+          },
+          "positionX": 288,
+          "positionY": 41
+        },
+        {
+          "name": "SwarmSecurityGroup",
+          "resourceName": "aws_security_group",
+          "attributes": {
+            "description": null,
+            "egress": "[{\"from_port\":0,\"to_port\":0,\"protocol\":\"-1\",\"cidr_blocks\":[\"0.0.0.0/0\"]}]",
+            "ingress": "[]",
+            "name": "${var.environment}-${var.product}-SwarmSecurityGroup",
+            "tags": "{\"Owner\":\"${var.owner}\",\"CreatedBy\":\"REAN-Deploy\",\"Name\":\"${var.environment}-${var.product}-SwarmSecurityGroup\",\"Environment\":\"${var.environment}\",\"Product\":\"${var.product}\"}",
+            "vpc_id": "${var.vpc_id}"
+          },
+          "connectionName": "amily",
+          "connectionType": "SSH",
+          "positionX": 805,
+          "positionY": 16
+        },
+        {
+          "name": "TrustedNetworkGroup",
+          "resourceName": "aws_security_group",
+          "attributes": {
+            "description": null,
+            "egress": "[{\"from_port\":0,\"to_port\":0,\"protocol\":\"-1\",\"cidr_blocks\":[\"0.0.0.0/0\"]}]",
+            "ingress": "[{\"protocol\":\"tcp\",\"from_port\":\"0\",\"to_port\":\"65535\",\"cidr_blocks\":[\"${var.TrustedNetwork}\"]}]",
+            "name": "${var.environment}-${var.product}-TrustedNetworkGroup",
+            "tags": "{\"Owner\":\"${var.owner}\",\"CreatedBy\":\"REAN-Deploy\",\"Name\":\"${var.environment}-${var.product}-TrustedNetworkGroup\",\"Environment\":\"${var.environment}\",\"Product\":\"${var.product}\"}",
+            "vpc_id": "${var.vpc_id}"
+          },
+          "positionX": 547,
+          "positionY": 76
+        },
+        {
+          "name": "UntrustedGroup",
+          "resourceName": "aws_security_group",
+          "attributes": {
+            "description": null,
+            "egress": "[{\"from_port\":0,\"to_port\":0,\"protocol\":\"-1\",\"cidr_blocks\":[\"0.0.0.0/0\"]}]",
+            "ingress": "[{\"protocol\":\"tcp\",\"from_port\":\"0\",\"to_port\":\"21\",\"cidr_blocks\":[\"${var.public}\"]},{\"protocol\":\"tcp\",\"from_port\":\"23\",\"to_port\":\"4443\",\"cidr_blocks\":[\"${var.public}\"]},{\"protocol\":\"tcp\",\"from_port\":\"4445\",\"to_port\":\"5431\",\"cidr_blocks\":[\"${var.public}\"]},{\"protocol\":\"tcp\",\"from_port\":\"5433\",\"to_port\":\"65535\",\"cidr_blocks\":[\"${var.public}\"]},{\"protocol\":\"udp\",\"from_port\":\"3410\",\"to_port\":\"3410\",\"cidr_blocks\":[\"${var.public}\"]}]",
+            "name": "${var.environment}-${var.product}-UntrustedGroup",
+            "tags": "{\"Owner\":\"${var.owner}\",\"CreatedBy\":\"REAN-Deploy\",\"Name\":\"${var.environment}-${var.product}-UntrustedGroup\",\"Environment\":\"${var.environment}\",\"Product\":\"${var.product}\"}",
+            "vpc_id": "${var.vpc_id}"
+          },
+          "positionX": 567,
+          "positionY": 139
+        },
+        {
+          "name": "UTMPolicy",
+          "resourceName": "aws_iam_role_policy",
+          "attributes": {
+            "name": "${var.environment}-${var.product}-UTMPolicy",
+            "policy": "{\r\n  \"Version\": \"2012-10-17\",\r\n  \"Statement\": [\r\n\t{\r\n\t  \"Effect\": \"Allow\",\r\n\t  \"Action\": [\r\n\t\t\"iam:PassRole\",\r\n\t\t\"iam:CreateRole\",\r\n\t\t\"iam:PutRolePolicy\",\r\n\t\t\"iam:DeleteRolePolicy\",\r\n\t\t\"iam:CreateInstanceProfile\",\r\n\t\t\"iam:AddRoleToInstanceProfile\",\r\n\t\t\"iam:RemoveRoleFromInstanceProfile\",\r\n\t\t\"iam:DeleteInstanceProfile\",\r\n\t\t\"iam:DeleteRole\"\r\n\t  ],\r\n\t  \"Resource\": \"*\"\r\n\t},\r\n\t{\r\n\t  \"Action\": \"iam:AttachRolePolicy\",\r\n\t  \"Resource\": [\"arn:aws:iam::*:role/actions/EC2ActionsAccess\"],\r\n\t  \"Effect\": \"Allow\"\r\n\t},\r\n\t{\r\n\t  \"Effect\": \"Allow\",\r\n\t  \"Action\": \"cloudformation:*\",\r\n\t  \"Resource\": \"*\"\r\n\t},\r\n\t{\r\n\t  \"Effect\": \"Allow\",\r\n\t  \"Action\": \"ec2:*\",\r\n\t  \"Resource\": \"*\"\r\n\t},\r\n\t{\r\n\t  \"Effect\": \"Allow\",\r\n\t  \"Action\": \"autoscaling:*\",\r\n\t  \"Resource\": \"*\"\r\n\t},\r\n\t{\r\n\t  \"Action\": \"cloudwatch:*\",\r\n\t  \"Resource\": \"*\",\r\n\t  \"Effect\": \"Allow\"\r\n\t},\r\n\t{\r\n\t  \"Effect\": \"Allow\",\r\n\t  \"Action\": \"elasticloadbalancing:*\",\r\n\t  \"Resource\": [\"arn:aws:elasticloadbalancing:*:*:loadbalancer/sophosloadbalancer\"]\r\n\t},\r\n\t{\r\n\t  \"Effect\": \"Allow\",\r\n\t  \"Action\": \"elasticloadbalancing:DescribeLoadBalancerPolicies\",\r\n\t  \"Resource\": \"*\"\r\n\t},\r\n\t{\r\n\t  \"Effect\": \"Allow\",\r\n\t  \"Action\": \"elasticloadbalancing:DescribeLoadBalancers\",\r\n\t  \"Resource\": \"*\"\r\n\t},\r\n\t{\r\n\t  \"Resource\": [\r\n\t\t\t\t   \"arn:aws:s3:::sophos-autoscale-bucket\",\r\n\t\t\t\t   \"arn:aws:s3:::sophos-autoscale-bucket/*\"\r\n\t],\r\n\t  \"Action\": [\r\n\t\t\"s3:*\"\r\n\t  ],\r\n\t  \"Effect\": \"Allow\"\r\n\t},\r\n\t{\r\n\t  \"Resource\": [\r\n\t\t\t\t   \"arn:aws:s3:::sophos-nsg-cf-dev\",\r\n\t\t\t\t   \"arn:aws:s3:::sophos-nsg-cf-dev/*\",\r\n\t\t\t\t   \"arn:aws:s3:::sophos-nsg-cf\",\r\n\t\t\t\t   \"arn:aws:s3:::sophos-nsg-cf/*\"\r\n\t  ],\r\n\t  \"Action\": [\r\n\t\t\"s3:List*\",\r\n\t\t\"s3:Get*\"\r\n\t  ],\r\n\t  \"Effect\": \"Allow\"\r\n\t},\r\n\t{\r\n\t  \"Effect\": \"Allow\",\r\n\t  \"Action\": [\r\n\t\t\"logs:CreateLogGroup\",\r\n\t\t\"logs:CreateLogStream\",\r\n\t\t\"logs:PutLogEvents\",\r\n\t\t\"logs:DescribeLogStreams\"\r\n\t  ],\r\n\t  \"Resource\": [\"arn:aws:logs:*:*:*\"]\r\n\t}\r\n  ]\r\n}",
+            "role": "${QueenRole.id}"
+          },
+          "positionX": 62,
+          "positionY": 256
+        },
+        {
+          "name": "WorkerInstance-Profile",
+          "resourceName": "aws_iam_instance_profile",
+          "attributes": {
+            "name": "${var.environment}-${var.product}-WorkerInstance-Profile",
+            "name_prefix": null,
+            "path": "/",
+            "role": "${WorkerRole.id}"
+          },
+          "positionX": 32,
+          "positionY": 160
+        },
+        {
+          "name": "WorkerPolicy",
+          "resourceName": "aws_iam_role_policy",
+          "attributes": {
+            "name": "${var.environment}-${var.product}-WorkerPolicy",
+            "policy": "{\r\n    \"Version\": \"2012-10-17\",\r\n\t\"Statement\": [\r\n\t\t{\r\n\t\t  \"Action\":\"ec2:Describe*\",\r\n\t\t  \"Effect\": \"Allow\",\r\n\t\t  \"Resource\": \"*\"\r\n\t\t},\r\n\t\t{\r\n\t\t  \"Resource\": [\r\n\t\t\t\t\t   \"arn:aws:s3:::sophos-autoscale-bucket\",\r\n\t\t\t\t\t   \"arn:aws:s3:::sophos-autoscale-bucket/*\"\r\n\t\t  ],\r\n\t\t  \"Action\": [\r\n\t\t\t\"s3:List*\",\r\n\t\t\t\"s3:Get*\"\r\n\t\t  ],\r\n\t\t  \"Effect\": \"Allow\"\r\n\t\t},\r\n\t\t{\r\n\t\t  \"Resource\": [\r\n\t\t\t\t\t\t\"arn:aws:s3:::sophos-autoscale-bucket/adbs\",\r\n\t\t\t\t\t\t\"arn:aws:s3:::sophos-autoscale-bucket/adbs/*\"\r\n\t\t\t],\r\n\t\t  \"Action\": [\r\n\t\t\t\"s3:List*\",\r\n\t\t\t\"s3:Get*\",\r\n\t\t\t\"s3:Put*\",\r\n\t\t\t\"s3:Delete*\"\r\n\t\t  ],\r\n\t\t  \"Effect\": \"Allow\"\r\n\t\t}\r\n\t  ]\r\n}",
+            "role": "${WorkerRole.id}"
+          },
+          "positionX": 56,
+          "positionY": 109
+        },
+        {
+          "name": "WorkerRole",
+          "resourceName": "aws_iam_role",
+          "attributes": {
+            "assume_role_policy": "{\n  \"Version\": \"2012-10-17\",\n    \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Principal\": {\n        \"Service\": [\n          \"ec2.amazonaws.com\"\n        ]\n      },\n      \"Action\": \"sts:AssumeRole\"\n    }\n ]\n}",
+            "name": "${var.environment}-${var.product}-WorkerRole",
+            "name_prefix": null,
+            "path": "/"
+          },
+          "positionX": 55,
+          "positionY": 56
+        }
+      ]
+    }
+  ],
+  "packages": []
+}
